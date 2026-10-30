@@ -25,7 +25,10 @@ const imagens = [
   // no celular ele é o fundo da dobra, no desktop é a coluna da direita
   ['BG-Dobra-01.webp',                       'heroi-tayna.webp',               820,  72,
    { left: 800, top: 0, width: 900, height: 1040 }],
+  ['BG-Dobra-01.webp',                       'heroi-tayna-600.webp',           600,  72,
+   { left: 800, top: 0, width: 900, height: 1040 }],
   ['mockup.webp',                            'mockup-cursos.webp',            1200,  76],
+  ['mockup.webp',                            'mockup-cursos-760.webp',         760,  76],
   ['faa1.webp',                              'prod-01-faa.webp',               560,  76],
   ['mld_1.webp',                             'prod-02-metodo-lucrando.webp',   560,  76],
   ['b1.webp',                                'prod-03-desafio-7dias.webp',     560,  76],
