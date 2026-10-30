@@ -1,0 +1,14 @@
+{
+  "name": "virada-black-friday-variacao-b",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Página de captação A Virada Black Friday (Taynã Gauche) — variação B. A página em si é estática; o Node só é usado para otimizar as imagens.",
+  "scripts": {
+    "imagens": "node scripts/otimizar-imagens.mjs",
+    "dev": "node scripts/servidor-local.mjs"
+  },
+  "devDependencies": {
+    "sharp": "^0.34.5"
+  }
+}
