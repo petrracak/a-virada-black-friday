@@ -1,0 +1,53 @@
+name: Publicar A Virada no cPanel (FTPS)
+
+on:
+  push:
+    branches: [main]
+    paths: ['site/**']
+  workflow_dispatch:
+    inputs:
+      publish:
+        description: 'Publicar arquivos? Desmarcado = simulação.'
+        type: boolean
+        required: true
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: virada-cpanel-ftps
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    if: ${{ github.ref == 'refs/heads/main' && (github.event_name == 'workflow_dispatch' || vars.ENABLE_FTPS_DEPLOY == 'true') }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Conferir conta FTP exclusiva
+        env:
+          FTP_SERVER: ${{ secrets.FTP_SERVER }}
+          FTP_USERNAME: ${{ secrets.FTP_USERNAME }}
+          FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
+        shell: bash
+        run: |
+          if [[ "$FTP_SERVER" != 'br.brasil108-6015.com.br' || "$FTP_USERNAME" != 'deployblack@taynagaucheoficial.com.br' || -z "$FTP_PASSWORD" ]]; then
+            echo 'Confira os secrets FTP_SERVER, FTP_USERNAME e FTP_PASSWORD.' >&2
+            exit 1
+          fi
+      - name: Obter arquivos da página
+        uses: actions/checkout@v4
+      - name: Enviar apenas site/ para a raiz da conta FTP
+        uses: SamKirkland/FTP-Deploy-Action@v4.4.0
+        with:
+          server: ${{ secrets.FTP_SERVER }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          protocol: ftps
+          port: 21
+          security: strict
+          local-dir: ./site/
+          server-dir: ./
+          dry-run: ${{ github.event_name == 'workflow_dispatch' && inputs.publish != true }}
+          dangerous-clean-slate: false
+          log-level: minimal
