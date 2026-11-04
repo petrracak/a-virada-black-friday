@@ -323,15 +323,19 @@ section { padding-block: var(--respiro); }
 .campo input[aria-invalid='true'] { border-color: var(--rosa); }
 .campo input[aria-invalid='true']:focus { box-shadow: 0 0 0 4px rgba(255,0,85,.16); }
 
+/* Seletor de país: um <select> nativo transparente por cima do bloco que
+   mostra bandeira e DDI. Nativo porque no celular ele abre a roleta do
+   sistema, funciona com teclado e com leitor de tela sem código extra. */
 .campo--tel .ddi {
   position: absolute;
   left: 1px;
   top: 1px;
+  z-index: 2;
   display: flex;
   align-items: center;
-  gap: 7px;
+  gap: 6px;
   height: 56px;
-  padding: 0 12px 0 14px;
+  padding: 0 10px 0 13px;
   border-radius: 12px 0 0 12px;
   background: rgba(255,255,255,.07);
   border-right: 1px solid var(--linha-viva);
@@ -339,10 +343,34 @@ section { padding-block: var(--respiro); }
   font-size: 14.5px;
   font-weight: 700;
   white-space: nowrap;
+  cursor: pointer;
+  transition: background-color .2s;
 }
-.campo--tel .ddi svg { flex: none; border-radius: 2px; }
-.campo--tel input { padding-left: 94px; }
-.campo--tel label { left: 95px; }
+.campo--tel .ddi:hover { background: rgba(157,60,255,.2); }
+.campo--tel .ddi:focus-within {
+  background: rgba(157,60,255,.24);
+  outline: 2px solid var(--roxo-luz);
+  outline-offset: -1px;
+}
+.ddi__bandeira { font-size: 17px; line-height: 1; }
+/* largura fixa para o campo não dançar entre +1 e +351 */
+.ddi__codigo { min-width: 40px; font-variant-numeric: tabular-nums; }
+.ddi__seta { flex: none; opacity: .5; }
+.ddi__select {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border: 0;
+  opacity: 0;
+  cursor: pointer;
+  font-size: 16px;        /* abaixo de 16px o iOS dá zoom ao abrir */
+  -webkit-appearance: none;
+          appearance: none;
+}
+/* o bloco do país mede 106px; o texto começa depois dele, com folga */
+.campo--tel input { padding-left: 119px; }
+.campo--tel label { left: 120px; }
 
 .erro { margin: -2px 0 0; color: var(--rosa); font-size: 13.5px; font-weight: 600; }
 

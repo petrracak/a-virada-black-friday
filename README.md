@@ -26,8 +26,8 @@ tratamento das imagens — a página não depende de nada.
 
 | | Página atual | Variação B |
 |---|---|---|
-| Peso total | ~1,9 MB | **549 KB** |
-| Peso da primeira tela | ~1 MB | **105 KB** |
+| Peso total | ~1,9 MB | **553 KB** |
+| Peso da primeira tela | ~1 MB | **110 KB** |
 | Requisições ao servidor | ~72 | **8 na primeira tela**, 30 no total |
 | Folhas de estilo | 27 | **1** |
 | Altura da página (celular) | 13.922 px | **6.768 px** |
@@ -216,13 +216,49 @@ lista u=47 · formulário f=47 · or=d96f29b3dd7c109efb5da9e30662d997
 | Campo enviado | Conteúdo |
 |---|---|
 | `email` | e-mail digitado |
-| `phone` | telefone montado em `+55DDDNÚMERO` |
-| `phone_display` | o que a pessoa digitou, com máscara |
+| `phone` | o próprio campo que a pessoa preenche, normalizado para `+DDI` + número no envio |
 | `field[9]` · `[12]` · `[16]` · `[11]` · `[13]` | utm_source, medium, campaign, term, content |
 | `field[17]` | URL completa da página, com a query string |
 | `field[122]` · `[123]` | vk_source, vk_ad_id |
 
 Os parâmetros da URL também são repassados para os links externos da página.
+
+### Seletor de país
+
+O campo de WhatsApp tem um seletor com **243 países**. Os seis mais prováveis
+(Brasil, Portugal, Estados Unidos, Angola, Moçambique, Cabo Verde) estão no HTML; os
+outros 237 são inseridos pelo `main.js` a partir de uma tabela compacta — assim o
+HTML não carrega 22 KB de `<option>` duas vezes. As bandeiras são calculadas a partir
+do código do país, não escritas no arquivo.
+
+É um `<select>` nativo, transparente, por cima do bloco que mostra a bandeira e o DDI.
+Nativo porque no celular ele abre a roleta do sistema e funciona com teclado e leitor
+de tela sem código extra. **Custo: 4,3 KB.** O `intl-tel-input` da página 1 custa
+~240 KB para fazer a mesma coisa.
+
+A validação é **rígida no Brasil** (10 ou 11 dígitos, com a máscara de sempre) e
+**permissiva nos outros países** (de 6 dígitos até o limite de 15 do padrão
+internacional). O motivo é concreto: na página 1 a regra brasileira de 10/11 dígitos
+roda para todos os países, e Portugal e Angola — que têm 9 — são barrados. Errar para
+o lado rígido custa um lead que não volta.
+
+A máscara `(11) 98765-4321` também só é aplicada no Brasil. Na página 1 ela é aplicada
+a todo mundo, e um número de Angola aparece na tela como "(95) 4646-524".
+
+Sem JavaScript o seletor mostra só os seis países e a escolha não é enviada (o
+`<select>` não tem `name`, de propósito, para não mandar campo desconhecido ao
+ActiveCampaign). O número digitado chega assim mesmo, sem o DDI.
+
+### Por que não existe campo oculto de telefone
+
+O campo que a pessoa preenche é o mesmo que o ActiveCampaign lê (`name="phone"`), e o
+`novalidate` do formulário é ligado pelo JavaScript em tempo de execução, não no HTML.
+Os dois detalhes existem pelo mesmo motivo: se o `main.js` não carregar, o navegador
+continua barrando campo vazio e o número digitado chega assim mesmo.
+
+Na página que está no ar é o contrário — quem vai para o ActiveCampaign é um campo
+oculto que só o JavaScript preenche, e é daí que vêm os leads sem telefone. O
+diagnóstico e a correção estão em [CORRECAO-TELEFONE-PAGINA-1.md](CORRECAO-TELEFONE-PAGINA-1.md).
 
 **O redirecionamento depois do cadastro é definido no painel do ActiveCampaign**, no
 formulário 89 — não está no HTML. Ele vale para as duas variações ao mesmo tempo.

@@ -43,8 +43,87 @@
     });
   }
 
-  /* ── 3. WhatsApp ───────────────────────────────────────────── */
+  /* ── 3. WhatsApp: país, máscara e validação ────────────────── */
 
+  // Os seis países mais prováveis já vêm no HTML; o resto entra aqui.
+  // Gerado a partir de intl-tel-input 17.0.8 (iso2 + DDI) com os nomes em
+  // português do próprio navegador (Intl.DisplayNames). Formato: iso,ddi,nome
+  var PAISES =
+    'af,93,Afeganistão|za,27,África do Sul|al,355,Albânia|de,49,Alemanha|ad,376,Andorra|' +
+    'ai,1,Anguila|ag,1,Antígua e Barbuda|sa,966,Arábia Saudita|dz,213,Argélia|' +
+    'ar,54,Argentina|am,374,Armênia|aw,297,Aruba|au,61,Austrália|at,43,Áustria|' +
+    'az,994,Azerbaijão|bs,1,Bahamas|bd,880,Bangladesh|bb,1,Barbados|bh,973,Barein|' +
+    'be,32,Bélgica|bz,501,Belize|bj,229,Benin|bm,1,Bermudas|by,375,Bielorrússia|' +
+    'bo,591,Bolívia|ba,387,Bósnia e Herzegovina|bw,267,Botsuana|bn,673,Brunei|' +
+    'bg,359,Bulgária|bf,226,Burquina Faso|bi,257,Burundi|bt,975,Butão|cm,237,Camarões|' +
+    'kh,855,Camboja|ca,1,Canadá|qa,974,Catar|kz,7,Cazaquistão|td,235,Chade|cl,56,Chile|' +
+    'cn,86,China|cy,357,Chipre|va,39,Cidade do Vaticano|co,57,Colômbia|km,269,Comores|' +
+    'cd,243,Congo - Kinshasa|kp,850,Coreia do Norte|kr,82,Coreia do Sul|' +
+    'ci,225,Costa do Marfim|cr,506,Costa Rica|hr,385,Croácia|cu,53,Cuba|cw,599,Curaçao|' +
+    'dk,45,Dinamarca|dj,253,Djibuti|dm,1,Dominica|eg,20,Egito|sv,503,El Salvador|' +
+    'ae,971,Emirados Árabes Unidos|ec,593,Equador|er,291,Eritreia|sk,421,Eslováquia|' +
+    'si,386,Eslovênia|es,34,Espanha|sz,268,Essuatíni|ee,372,Estônia|et,251,Etiópia|' +
+    'fj,679,Fiji|ph,63,Filipinas|fi,358,Finlândia|fr,33,França|ga,241,Gabão|gm,220,Gâmbia|' +
+    'gh,233,Gana|ge,995,Geórgia|gi,350,Gibraltar|gd,1,Granada|gr,30,Grécia|' +
+    'gl,299,Groenlândia|gp,590,Guadalupe|gu,1,Guam|gt,502,Guatemala|gg,44,Guernsey|' +
+    'gy,592,Guiana|gf,594,Guiana Francesa|gn,224,Guiné|gq,240,Guiné Equatorial|' +
+    'gw,245,Guiné-Bissau|ht,509,Haiti|hn,504,Honduras|hk,852,Hong Kong, RAE da China|' +
+    'hu,36,Hungria|ye,967,Iêmen|cx,61,Ilha Christmas|im,44,Ilha de Man|nf,672,Ilha Norfolk|' +
+    'ax,358,Ilhas Aland|ky,1,Ilhas Cayman|cc,61,Ilhas Cocos (Keeling)|ck,682,Ilhas Cook|' +
+    'fo,298,Ilhas Faroé|fk,500,Ilhas Malvinas|mp,1,Ilhas Marianas do Norte|' +
+    'mh,692,Ilhas Marshall|sb,677,Ilhas Salomão|tc,1,Ilhas Turcas e Caicos|' +
+    'vi,1,Ilhas Virgens Americanas|vg,1,Ilhas Virgens Britânicas|in,91,Índia|id,62,Indonésia|' +
+    'ir,98,Irã|iq,964,Iraque|ie,353,Irlanda|is,354,Islândia|il,972,Israel|it,39,Itália|' +
+    'jm,1,Jamaica|jp,81,Japão|je,44,Jersey|jo,962,Jordânia|xk,383,Kosovo|kw,965,Kuwait|' +
+    'la,856,Laos|ls,266,Lesoto|lv,371,Letônia|lb,961,Líbano|lr,231,Libéria|ly,218,Líbia|' +
+    'li,423,Liechtenstein|lt,370,Lituânia|lu,352,Luxemburgo|mo,853,Macau, RAE da China|' +
+    'mk,389,Macedônia do Norte|mg,261,Madagascar|my,60,Malásia|mw,265,Malaui|mv,960,Maldivas|' +
+    'ml,223,Mali|mt,356,Malta|ma,212,Marrocos|mq,596,Martinica|mu,230,Maurício|' +
+    'mr,222,Mauritânia|yt,262,Mayotte|mx,52,México|mm,95,Mianmar (Birmânia)|' +
+    'fm,691,Micronésia|md,373,Moldávia|mc,377,Mônaco|mn,976,Mongólia|me,382,Montenegro|' +
+    'ms,1,Montserrat|na,264,Namíbia|nr,674,Nauru|np,977,Nepal|ni,505,Nicarágua|ne,227,Níger|' +
+    'ng,234,Nigéria|nu,683,Niue|no,47,Noruega|nc,687,Nova Caledônia|nz,64,Nova Zelândia|' +
+    'om,968,Omã|nl,31,Países Baixos|bq,599,Países Baixos Caribenhos|pw,680,Palau|' +
+    'pa,507,Panamá|pg,675,Papua-Nova Guiné|pk,92,Paquistão|py,595,Paraguai|pe,51,Peru|' +
+    'pf,689,Polinésia Francesa|pl,48,Polônia|pr,1,Porto Rico|ke,254,Quênia|' +
+    'kg,996,Quirguistão|ki,686,Quiribati|gb,44,Reino Unido|cf,236,República Centro-Africana|' +
+    'cg,242,República do Congo|do,1,República Dominicana|re,262,Reunião|ro,40,Romênia|' +
+    'rw,250,Ruanda|ru,7,Rússia|eh,212,Saara Ocidental|ws,685,Samoa|as,1,Samoa Americana|' +
+    'sm,378,San Marino|sh,290,Santa Helena|lc,1,Santa Lúcia|bl,590,São Bartolomeu|' +
+    'kn,1,São Cristóvão e Névis|mf,590,São Martinho|pm,508,São Pedro e Miquelão|' +
+    'st,239,São Tomé e Príncipe|vc,1,São Vicente e Granadinas|sc,248,Seicheles|' +
+    'sn,221,Senegal|sl,232,Serra Leoa|rs,381,Sérvia|sg,65,Singapura|sx,1,Sint Maarten|' +
+    'sy,963,Síria|so,252,Somália|lk,94,Sri Lanka|sd,249,Sudão|ss,211,Sudão do Sul|' +
+    'se,46,Suécia|ch,41,Suíça|sr,597,Suriname|sj,47,Svalbard e Jan Mayen|tj,992,Tadjiquistão|' +
+    'th,66,Tailândia|tw,886,Taiwan|tz,255,Tanzânia|cz,420,Tchéquia|' +
+    'io,246,Território Britânico do Oceano Índico|ps,970,Territórios palestinos|' +
+    'tl,670,Timor-Leste|tg,228,Togo|tk,690,Tokelau|to,676,Tonga|tt,1,Trinidad e Tobago|' +
+    'tn,216,Tunísia|tm,993,Turcomenistão|tr,90,Turquia|tv,688,Tuvalu|ua,380,Ucrânia|' +
+    'ug,256,Uganda|uy,598,Uruguai|uz,998,Uzbequistão|vu,678,Vanuatu|ve,58,Venezuela|' +
+    'vn,84,Vietnã|wf,681,Wallis e Futuna|zm,260,Zâmbia|zw,263,Zimbábue';
+
+  function bandeiraDe(iso) {
+    return iso.toUpperCase().replace(/./g, function (letra) {
+      return String.fromCodePoint(0x1F1E6 + letra.charCodeAt(0) - 65);
+    });
+  }
+
+  function completarPaises(select) {
+    if (!select || select.dataset.completo) return;
+    var grupo = document.createElement('optgroup');
+    grupo.label = 'Todos os países';
+    grupo.innerHTML = PAISES.split('|').map(function (linha) {
+      var p = linha.split(',');
+      return '<option value="' + p[1] + '" data-iso="' + p[0] + '">' +
+             p[2] + ' +' + p[1] + '</option>';
+    }).join('');
+    select.appendChild(grupo);
+    select.dataset.completo = '1';
+  }
+
+  // Máscara só para o Brasil, que é de onde vem quase todo o tráfego.
+  // Para os outros países fica só o número, sem formatar: um formato errado
+  // confunde quem digita e já custou lead na página antiga.
   function formatarBR(valor) {
     var d = valor.replace(/\D/g, '').slice(0, 11);
     if (d.length <= 2)  return d ? '(' + d : '';
@@ -66,19 +145,61 @@
   }
 
   formularios.forEach(function (form) {
+    // O campo que a pessoa preenche é o mesmo que vai para o ActiveCampaign
+    // (name="phone"). Assim, se este arquivo não carregar, o número digitado
+    // chega mesmo assim — sem o DDI, mas chega. O JS só normaliza.
     var telefone = form.querySelector('[data-telefone]');
-    var telefoneFinal = form.querySelector('[data-telefone-final]');
     var email = form.querySelector('input[type="email"]');
     var botao = form.querySelector('button[type="submit"]');
+    var pais = form.querySelector('[data-pais]');
+    var bandeira = form.querySelector('[data-bandeira]');
+    var codigo = form.querySelector('[data-codigo]');
+    var rotulo = telefone && form.querySelector('label[for="' + telefone.id + '"]');
+
+    // A validação do navegador fica ligada no HTML e só é desligada aqui,
+    // onde temos as mensagens próprias. Sem JS ela continua barrando campo
+    // vazio, que é a causa de lead sem telefone.
+    form.noValidate = true;
+
+    completarPaises(pais);
+
+    function isoAtual() {
+      var op = pais && pais.options[pais.selectedIndex];
+      return (op && op.dataset.iso) || 'br';
+    }
+    function ddiAtual() { return (pais && pais.value) || '55'; }
+
+    function aplicarMascara() {
+      if (!telefone) return;
+      telefone.value = isoAtual() === 'br'
+        ? formatarBR(telefone.value)
+        : telefone.value.replace(/\D/g, '').slice(0, 15);
+    }
+
+    if (pais) {
+      pais.addEventListener('change', function () {
+        var iso = isoAtual();
+        if (bandeira) bandeira.textContent = bandeiraDe(iso);
+        if (codigo) codigo.textContent = '+' + ddiAtual();
+        if (rotulo) rotulo.textContent = iso === 'br' ? 'Seu WhatsApp com DDD' : 'Seu WhatsApp';
+        if (telefone) {
+          telefone.inputMode = 'numeric';
+          aplicarMascara();
+        }
+        avisar(form, '');
+      });
+    }
 
     if (telefone) {
       telefone.addEventListener('input', function () {
-        telefone.value = formatarBR(telefone.value);
+        aplicarMascara();
         if (telefone.getAttribute('aria-invalid') === 'true') avisar(form, '', telefone);
       });
     }
 
     form.addEventListener('submit', function (evento) {
+      var iso = isoAtual();
+      var ddi = ddiAtual();
       var digitos = telefone ? telefone.value.replace(/\D/g, '') : '';
 
       if (email && !email.checkValidity()) {
@@ -86,19 +207,36 @@
         avisar(form, 'Confira o e-mail digitado.', email);
         return;
       }
-      if (digitos.length !== 10 && digitos.length !== 11) {
+
+      // Rígido no Brasil, onde dá para ter certeza do formato. Nos outros
+      // países, só a faixa que o padrão internacional permite — barrar um
+      // número estrangeiro válido custa um lead que nunca mais volta.
+      var curto = iso === 'br' ? (digitos.length !== 10 && digitos.length !== 11)
+                               : (digitos.length < 6);
+      if (curto) {
         evento.preventDefault();
-        avisar(form, 'Informe seu WhatsApp com DDD — 10 ou 11 números.', telefone);
+        avisar(form, iso === 'br'
+          ? 'Confira seu WhatsApp: precisa do DDD e de 10 ou 11 números.'
+          : 'Confira seu WhatsApp e o país escolhido.', telefone);
+        return;
+      }
+      if ((ddi + digitos).length > 15) {
+        evento.preventDefault();
+        avisar(form, 'Esse número tem dígitos demais. Confira o país escolhido.', telefone);
         return;
       }
 
       avisar(form, '');
-      if (telefoneFinal) telefoneFinal.value = '+55' + digitos;
+      telefone.value = '+' + ddi + digitos;   // formato que o ActiveCampaign espera
       if (botao) botao.setAttribute('data-enviando', '');
 
       // fica disponível no GTM caso você queira disparar o Lead já no envio
       window.dataLayer = window.dataLayer || [];
-      window.dataLayer.push({ event: 'lead_formulario', formulario: 'virada_black_friday_b' });
+      window.dataLayer.push({
+        event: 'lead_formulario',
+        formulario: 'virada_black_friday_b',
+        pais: iso
+      });
     });
   });
 
